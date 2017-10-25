@@ -1,0 +1,246 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<!-- Include meta tag to ensure proper rendering and touch zooming -->
+<link rel="stylesheet"
+	href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+<!-- Include the jQuery library -->
+<script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+<!-- Include the jQuery Mobile library -->
+<script
+	src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js"></script>
+<link rel="stylesheet" type="text/css" href="application.css"></link>
+<title>Dziennik Robót</title>
+</head>
+<body>
+	<div data-role="page">
+		<div data-role="header">
+			<h1>Dziennik Robót</h1>
+		</div>
+		<div data-role="main" class="ui-content">
+			<div ng-app="MyApp" ng-controller="MyController">
+				<div>
+					Wybierz użytkownika: <select ng-model="selectUser"
+						id="selectUserId" placeholder="user"
+						ng-options="user.userName for user in userElement"
+						ng-change="blankMonth()">
+
+
+					</select>
+					<button ng-model="NewUser" ng-click="showNewUserForm()">
+						Nowy użytkownik</button>
+				</div>
+				<div id="newUser" ng-show="IsVisible">
+					<form>
+						<input ng-model="addedUser"> </input>
+						<button ng-click="addNewUser()">Dodaj użytkownika</button>
+					</form>
+				</div>
+				<div>
+					Podaj miesiąc: <input type="month" ng-model="searchmonth"
+						id="searchMonthId" placeholder="yyyy-MM"
+						ng-change="ifEmptyFillMonth()">
+				</div>
+
+				<table id="dziennikTable" class="ui-responsive">
+					<thead>
+						<tr>
+							<th style="display: none;">ID</th>
+							<th>Dzień</th>
+							<th>Robota</th>
+							<th>Uwagi</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							ng-repeat="dziennik in dziennikElement |searchMonthFilter:searchmonth |userFilter:selectUser">
+							<td style="display: none;">{{dziennik.id }}</td>
+							<td>{{ dziennik.day }}</td>
+							<td><input class="inp" ng-model="dziennik.robota"
+								ng-change="updateDayButton($index)"></td>
+							<td><input class="inp" ng-model="dziennik.uwagi"
+								ng-change="updateDayButton($index)"></td>
+						</tr>
+
+					</tbody>
+
+				</table>
+
+				<br />
+
+				<div data-role="footer">
+					<h3>Euro-Geo Sp.z o.o.</h3>
+					<br> <br>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+
+	<script type="text/javascript">
+        var app = angular.module('MyApp', [])
+
+     
+	app.filter('searchMonthFilter', function($filter)
+     			{
+     		 return function(dziennik,searchmonth)
+     		 {
+     			
+     		  if(dziennik == null){ return ""; } 
+     		  var searchMonthDate=$filter('date')(searchmonth, "yyyy-MM");
+     		 var filtered = [];
+     		 for (var i = 0; i < dziennik.length; i++) {
+     		      var item = dziennik[i];
+     		    
+     		      if (searchMonthDate==(item.day.substring(0, 7))) {
+     		        filtered.push(item);
+     		       
+     		      }
+     		    }
+     		    return filtered;
+
+     		 };
+     		});
+			app.filter('userFilter', function($filter)
+     			{
+     		 return function(array,selectUser)
+     		 {
+     			
+     		  if(array == null){ return ""; } 
+     		  var searchUser=selectUser.userName;
+			 
+     		 var filtered = [];
+			
+     		 for (var i = 0; i < array.length; i++) {
+     		      var item = array[i];
+					
+     		      if (searchUser==item.user) {
+     		        filtered.push(item);
+     		       
+     		      }
+     		    }
+				
+     		    return filtered;
+
+     		 };
+     		});
+
+	
+        app.controller('MyController',[ '$scope' , '$http', '$filter',
+           function ($scope,$http,$filter) {
+
+            $scope.IsVisible = false;
+        	$http.get('http://localhost:8090/getall')
+            .then(function (response) {$scope.dziennikElement = response.data.dziennikElement;
+		
+            }); 
+        	$http.get('http://localhost:8090/getalluser')
+            .then(function (response) {$scope.userElement = response.data.userElement;
+		
+            }); 
+          
+
+				function treatAsUTC(date) {
+  				  var result = new Date(date);
+   				 result.setMinutes(result.getMinutes() - result.getTimezoneOffset());
+    				return result;
+					}
+
+				function daysBetween(startDate, endDate) {
+  				  var millisecondsPerDay = 24 * 60 * 60 * 1000;
+   				 return (treatAsUTC(endDate) - treatAsUTC(startDate)) / millisecondsPerDay;
+				}
+
+
+				$scope.createMonth=function(selectUserStr){
+				
+					var start = new Date(document.getElementById("searchMonthId").value);
+					var year= start.getFullYear();
+					var month = start.getMonth()+1;
+					if(selectUserStr==null){
+					console.log("brak user");
+					}
+					else
+					{
+					
+					$http.post('http://localhost:8090/create/'+ year +'/'+ month+'/'+selectUserStr)
+     	  	       .success(function(){
+     	  	    	
+     	  	    	$http.get('http://localhost:8090/getall')
+		            .then(function (response) {$scope.dziennikElement = response.data.dziennikElement;});
+     	     		   });
+					
+					}
+					}
+					$scope.ifEmptyFillMonth= function (){
+					var selectUserStr = $scope.selectUser.userName;
+					var existMonthDay = [];
+					existMonthDay = $filter('searchMonthFilter')($scope.dziennikElement,searchMonthId.value);
+					existMonthDay =  $filter('userFilter')(existMonthDay,selectUserStr);
+					if (existMonthDay.length ==0)
+					{
+					
+					$scope.createMonth(selectUserStr);
+					}
+					}
+					$scope.blankMonth=function(){
+					document.getElementById("searchMonthId").value="";
+					}
+				
+					 $(document).ready(function() {					
+						$("p").hide();
+					 })
+					 
+				$scope.showNewUserForm = function(){
+				
+					$scope.IsVisible = $scope.IsVisible ? false : true;
+					}
+				$scope.addNewUser = function(){
+					var addedUserstr= $scope.addedUser;
+					console.log(addedUserstr);
+					var obj = {};
+					obj['userName']= addedUserstr;
+					$http.post('http://localhost:8090/newuser',obj,'application/json')
+					.success(function(obj){$http.get('http://localhost:8090/getalluser')
+		            .then(function (response) {$scope.userElement = response.data.userElement;}); 
+					 });
+					 $scope.IsVisible =  false;
+					}
+        	
+				$scope.updateDayButton =function(ind) {
+            	console.log(ind);
+				var selectUserStr = $scope.selectUser.userName;
+            	var currentRow = ind+1;
+            	var table= document.getElementById("dziennikTable");
+            	var row, rows = table.rows;
+            	console.log("currentrow:"+currentRow);
+				if(selectUserStr==null){
+					}
+					else{				
+            	row = rows[currentRow];
+                var obj = {};
+         		    obj['id']=row.cells[0].textContent;
+           		    obj['day']=row.cells[1].textContent;
+            	    obj['robota']=row.cells[2].children[0].value;
+            	    obj['uwagi']=row.cells[3].children[0].value;
+            	    var currentDay = new Date(row.cells[1].textContent);
+            	    obj['month']=currentDay.getMonth();
+            	    obj['year']=currentDay.getFullYear();
+					obj['user'] = selectUserStr;
+            	   console.log(obj);
+              	   	$http.post('http://localhost:8090/updateday',obj,'application/json'
+             	  	        ).success(function(obj){
+             	           
+             	        });
+         	  		}
+					}
+          }]);
+   	 </script>
+</body>
+</html>
