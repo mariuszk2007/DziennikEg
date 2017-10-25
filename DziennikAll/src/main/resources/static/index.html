@@ -40,11 +40,14 @@
 						<button ng-click="addNewUser()">Dodaj użytkownika</button>
 					</form>
 				</div>
-				<div>
+				<div> 
+				<button id="openFiltr" ng-click = "openFilter()">otwórz filtrowanie</button>
+				</div>
+				<div ng-show="IsVisibleMainTable">
 					Podaj miesiąc: <input type="month" ng-model="searchmonth"
 						id="searchMonthId" placeholder="yyyy-MM"
 						ng-change="ifEmptyFillMonth()">
-				</div>
+				
 
 				<table id="dziennikTable" class="ui-responsive">
 					<thead>
@@ -69,7 +72,32 @@
 					</tbody>
 
 				</table>
-
+				</div>
+				
+				<div id ="filtrRobota" ng-show="IsVisibleFiltr">
+					Wybierz robotę <input ng-model="searchRobota">
+					
+				
+				<table id="nadgodzinyTable" class="ui-responsive">
+					<thead>
+						<tr>
+							
+							<th>Dzień</th>
+							<th>Liczba</th>
+							<th>User</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							ng-repeat="dziennik in dziennikElement | filter: {robota:searchRobota} |orderBy: 'day' ">
+							
+							<td>{{dziennik.day }}</td>
+							<td>{{dziennik.robota}}</td>
+							<td>{{dziennik.user}}</td>
+						</tr>
+					</tbody>
+				</table>
+				</div>
 				<br />
 
 				<div data-role="footer">
@@ -136,6 +164,9 @@
            function ($scope,$http,$filter) {
 
             $scope.IsVisible = false;
+			$scope.IsVisibleFiltr = false;
+			$scope.IsVisibleMainTable =true;
+			
         	$http.get('http://localhost:8090/getall')
             .then(function (response) {$scope.dziennikElement = response.data.dziennikElement;
 		
@@ -212,6 +243,18 @@
 					 });
 					 $scope.IsVisible =  false;
 					}
+					
+					$scope.openFilter = function() {
+					console.log("otwieranie filtrowania");
+					$scope.IsVisibleFiltr = $scope.IsVisibleFiltr ? false : true;
+					$scope.IsVisibleMainTable = $scope.IsVisibleFiltr ? false : true;
+					if ($scope.IsVisibleMainTable==false){
+					document.getElementById("openFiltr").innerText = 'zamknij filtrowanie';
+					}
+					else {
+					document.getElementById("openFiltr").innerText = 'otwórz filtrowanie';
+					}
+				}
         	
 				$scope.updateDayButton =function(ind) {
             	console.log(ind);
