@@ -40,63 +40,64 @@
 						<button ng-click="addNewUser()">Dodaj użytkownika</button>
 					</form>
 				</div>
-				<div> 
-				<button id="openFiltr" ng-click = "openFilter()">otwórz filtrowanie</button>
+				<div>
+					<button id="openFiltr" ng-click="openFilter()">otwórz
+						filtrowanie</button>
 				</div>
 				<div ng-show="IsVisibleMainTable">
 					Podaj miesiąc: <input type="month" ng-model="searchmonth"
 						id="searchMonthId" placeholder="yyyy-MM"
 						ng-change="ifEmptyFillMonth()">
-				
 
-				<table id="dziennikTable" class="ui-responsive">
-					<thead>
-						<tr>
-							<th style="display: none;">ID</th>
-							<th>Dzień</th>
-							<th>Robota</th>
-							<th>Uwagi</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr
-							ng-repeat="dziennik in dziennikElement |searchMonthFilter:searchmonth |userFilter:selectUser">
-							<td style="display: none;">{{dziennik.id }}</td>
-							<td>{{ dziennik.day }}</td>
-							<td><input class="inp" ng-model="dziennik.robota"
-								ng-change="updateDayButton($index)"></td>
-							<td><input class="inp" ng-model="dziennik.uwagi"
-								ng-change="updateDayButton($index)"></td>
-						</tr>
 
-					</tbody>
+					<table id="dziennikTable" class="ui-responsive">
+						<thead>
+							<tr>
+								<th style="display: none;">ID</th>
+								<th>Dzień</th>
+								<th>Robota</th>
+								<th>Uwagi</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr
+								ng-repeat="dziennik in dziennikElement |searchMonthFilter:searchmonth |userFilter:selectUser">
+								<td style="display: none;">{{dziennik.id }}</td>
+								<td>{{ dziennik.day }}</td>
+								<td><input class="inp" ng-model="dziennik.robota"
+									ng-change="updateDayButton($index)"></td>
+								<td><input class="inp" ng-model="dziennik.uwagi"
+									ng-change="updateDayButton($index)"></td>
+							</tr>
 
-				</table>
+						</tbody>
+
+					</table>
 				</div>
-				
-				<div id ="filtrRobota" ng-show="IsVisibleFiltr">
+
+				<div id="filtrRobota" ng-show="IsVisibleFiltr">
 					Wybierz robotę <input ng-model="searchRobota">
-					
-				
-				<table id="nadgodzinyTable" class="ui-responsive">
-					<thead>
-						<tr>
-							
-							<th>Dzień</th>
-							<th>Liczba</th>
-							<th>User</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr
-							ng-repeat="dziennik in dziennikElement | filter: {robota:searchRobota} |orderBy: 'day' ">
-							
-							<td>{{dziennik.day }}</td>
-							<td>{{dziennik.robota}}</td>
-							<td>{{dziennik.user}}</td>
-						</tr>
-					</tbody>
-				</table>
+
+
+					<table class="ui-responsive">
+						<thead>
+							<tr>
+
+								<th>Dzień</th>
+								<th>Robota</th>
+								<th>User</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr
+								ng-repeat="dziennik in dziennikElement | filter: {robota:searchRobota} |orderBy: 'day' ">
+
+								<td>{{dziennik.day }}</td>
+								<td>{{dziennik.robota}}</td>
+								<td>{{dziennik.user}}</td>
+							</tr>
+						</tbody>
+					</table>
 				</div>
 				<br />
 
@@ -166,12 +167,14 @@
             $scope.IsVisible = false;
 			$scope.IsVisibleFiltr = false;
 			$scope.IsVisibleMainTable =true;
+			$scope.searchRobota = " ";
+			var path = 'http://localhost:8080/Dziennik-eg/';
 			
-        	$http.get('http://localhost:8090/getall')
+        	$http.get('getall')
             .then(function (response) {$scope.dziennikElement = response.data.dziennikElement;
 		
             }); 
-        	$http.get('http://localhost:8090/getalluser')
+        	$http.get('getalluser')
             .then(function (response) {$scope.userElement = response.data.userElement;
 		
             }); 
@@ -200,16 +203,16 @@
 					else
 					{
 					
-					$http.post('http://localhost:8090/create/'+ year +'/'+ month+'/'+selectUserStr)
+					$http.post('create/'+ year +'/'+ month+'/'+selectUserStr)
      	  	       .success(function(){
      	  	    	
-     	  	    	$http.get('http://localhost:8090/getall')
+     	  	    	$http.get('getall')
 		            .then(function (response) {$scope.dziennikElement = response.data.dziennikElement;});
      	     		   });
 					
 					}
 					}
-					$scope.ifEmptyFillMonth= function (){
+				$scope.ifEmptyFillMonth= function (){
 					var selectUserStr = $scope.selectUser.userName;
 					var existMonthDay = [];
 					existMonthDay = $filter('searchMonthFilter')($scope.dziennikElement,searchMonthId.value);
@@ -217,10 +220,10 @@
 					if (existMonthDay.length ==0)
 					{
 					
-					$scope.createMonth(selectUserStr);
+				$scope.createMonth(selectUserStr);
 					}
 					}
-					$scope.blankMonth=function(){
+				$scope.blankMonth=function(){
 					document.getElementById("searchMonthId").value="";
 					}
 				
@@ -229,7 +232,6 @@
 					 })
 					 
 				$scope.showNewUserForm = function(){
-				
 					$scope.IsVisible = $scope.IsVisible ? false : true;
 					}
 				$scope.addNewUser = function(){
@@ -237,14 +239,14 @@
 					console.log(addedUserstr);
 					var obj = {};
 					obj['userName']= addedUserstr;
-					$http.post('http://localhost:8090/newuser',obj,'application/json')
-					.success(function(obj){$http.get('http://localhost:8090/getalluser')
+					$http.post('newuser',obj,'application/json')
+					.success(function(obj){$http.get('getalluser')
 		            .then(function (response) {$scope.userElement = response.data.userElement;}); 
 					 });
 					 $scope.IsVisible =  false;
 					}
 					
-					$scope.openFilter = function() {
+				$scope.openFilter = function() {
 					console.log("otwieranie filtrowania");
 					$scope.IsVisibleFiltr = $scope.IsVisibleFiltr ? false : true;
 					$scope.IsVisibleMainTable = $scope.IsVisibleFiltr ? false : true;
@@ -277,7 +279,7 @@
             	    obj['year']=currentDay.getFullYear();
 					obj['user'] = selectUserStr;
             	   console.log(obj);
-              	   	$http.post('http://localhost:8090/updateday',obj,'application/json'
+              	   	$http.post('updateday',obj,'application/json'
              	  	        ).success(function(obj){
              	           
              	        });
