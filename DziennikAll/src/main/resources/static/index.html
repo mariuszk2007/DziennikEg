@@ -31,10 +31,10 @@
 
 
 					</select>
-					<button ng-model="NewUser" ng-click="showNewUserForm()">
+					<button id="newUserButton" ng-click="showNewUserForm()">
 						Nowy użytkownik</button>
 				</div>
-				<div id="newUser" ng-show="IsVisible">
+				<div id="newUserForm">
 					<form>
 						<input ng-model="addedUser"> </input>
 						<button ng-click="addNewUser()">Dodaj użytkownika</button>
@@ -44,7 +44,7 @@
 					<button id="openFiltr" ng-click="openFilter()">otwórz
 						filtrowanie</button>
 				</div>
-				<div ng-show="IsVisibleMainTable">
+				<div id="IsVisibleMainTable">
 					Podaj miesiąc: <input type="month" ng-model="searchmonth"
 						id="searchMonthId" placeholder="yyyy-MM"
 						ng-change="ifEmptyFillMonth()">
@@ -75,7 +75,7 @@
 					</table>
 				</div>
 
-				<div id="filtrRobota" ng-show="IsVisibleFiltr">
+				<div id="IsVisibleFiltr">
 					Wybierz robotę <input ng-model="searchRobota">
 
 
@@ -114,7 +114,32 @@
 
 	<script type="text/javascript">
         var app = angular.module('MyApp', [])
-
+		$(document).ready(function() {
+					$("p").hide();
+					$("#IsVisibleFiltr").hide();
+					$("#newUserForm").hide();
+					});
+					$(document).ready(
+				function(){
+				
+				$("#newUserButton").click(function(){
+				
+				console.log("click");
+				$("#newUserForm").slideToggle("slow");
+				
+				});
+				});
+				
+				$(document).ready(
+				function(){
+				
+				$("#openFiltr").click(function(){
+				
+				
+				$("#IsVisibleMainTable").toggle("slow");
+				$("#IsVisibleFiltr").toggle("slow");
+				});
+				});
      
 	app.filter('searchMonthFilter', function($filter)
      			{
@@ -164,9 +189,7 @@
         app.controller('MyController',[ '$scope' , '$http', '$filter',
            function ($scope,$http,$filter) {
 
-            $scope.IsVisible = false;
-			$scope.IsVisibleFiltr = false;
-			$scope.IsVisibleMainTable =true;
+           
 			$scope.searchRobota = " ";
 			var path = 'http://localhost:8080/Dziennik-eg/';
 			
@@ -227,13 +250,9 @@
 					document.getElementById("searchMonthId").value="";
 					}
 				
-					 $(document).ready(function() {					
-						$("p").hide();
-					 })
+				
 					 
-				$scope.showNewUserForm = function(){
-					$scope.IsVisible = $scope.IsVisible ? false : true;
-					}
+				
 				$scope.addNewUser = function(){
 					var addedUserstr= $scope.addedUser;
 					console.log(addedUserstr);
@@ -243,7 +262,8 @@
 					.success(function(obj){$http.get('getalluser')
 		            .then(function (response) {$scope.userElement = response.data.userElement;}); 
 					 });
-					 $scope.IsVisible =  false;
+					$scope.addedUser="";
+					$("#newUserForm").slideUp("slow");
 					}
 					
 				$scope.openFilter = function() {
