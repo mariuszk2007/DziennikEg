@@ -1,11 +1,20 @@
 .ui-content{
    
-  background-color: #1d1d1d;
+  background-color: #f3f3f3;
  
+}
+.ui-page .ui-header {
+    background: #77bc1f;
+}
+.ui-page .ui-footer {
+    background: #77bc1f ;
+}
+.text{
+	color: black;
 }
 
 table,tr,th,td{
- border: 1px solid white;
+ border: 1px solid #77bc1f;
 width: 60px;
 }
 .ui-responsive{
@@ -15,13 +24,15 @@ width: 60px;
 .inp{
 width: 100%;
 }
-
+.inp:focus{
+background-color: #77bc1f;
+}
 
 tr{
-color: white;
+color: black;
 }
 input{
-	color: white;
+	color: black;
 	width: 60px;
  background-color: transparent;
     border: 0px solid;
